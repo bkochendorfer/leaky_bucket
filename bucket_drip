@@ -2,7 +2,7 @@
 Leaky bucket downloader.
 
 Usage:
-  bucket_drip bucket-url> <output-dir>
+  bucket_drip <bucket-url> <output-dir>
   bucket_drip -h | --help
   bucket_drip --version
 
