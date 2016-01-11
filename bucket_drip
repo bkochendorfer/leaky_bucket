@@ -1,0 +1,44 @@
+"""
+Leaky bucket downloader.
+
+Usage:
+  bucket_drip bucket-url> <output-dir>
+  bucket_drip -h | --help
+  bucket_drip --version
+
+Options:
+  -v --version          Show version.
+  -h --help             Show this screen.
+"""
+import requests
+import os.path
+
+from xml.dom import minidom
+from path import path
+from docopt import docopt
+
+def make_dir(output_dir):
+  if not os.path.exists(output_dir):
+    os.makedirs(output_dir)
+  return
+
+def download_file(bucket, node, output_dir):
+  r = requests.get('%s/%s' % (bucket, node), stream=True)
+  local_filename = os.path.join(output_dir, node)
+  with open(local_filename, 'wb') as f:
+    for chunk in r.iter_content(chunk_size=1024):
+      if chunk:
+        f.write(chunk)
+  return local_filename
+
+def main(bucket, output_dir):
+  make_dir(output_dir)
+  bucket_contents = requests.get(bucket)
+  xmldoc = minidom.parseString(bucket_contents.text)
+  nodes = xmldoc.getElementsByTagName('Key')
+  for node in nodes:
+    download_file(bucket, node.firstChild.nodeValue, output_dir)
+
+if __name__ == '__main__':
+  options = docopt(__doc__, version='Leaky Bucket downloader 0.1.0')
+  main(path(options['<bucket-url>']), path(options['<output-dir>']))
